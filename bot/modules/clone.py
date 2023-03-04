@@ -20,7 +20,7 @@ args = message.text.split()
 reply_to = message.reply_to_message
 link = ''
 multi=0
-    if len(args) > 1:
+if len(args) > 1:
         link = args[1].strip()
         if link.strip().isdigit():
             multi = int(link)
