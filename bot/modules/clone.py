@@ -190,7 +190,7 @@ if is_Sharerlink(link):
             except Exception as e:
                 LOGGER.warning(e)
                 return
-    else:
+  else:
         sendMessage("Send Gdrive link along with command or by replying to the link by command\n\n<b>Multi links only by replying to first link:</b>\n<code>/cmd</code> 10(number of links)", bot, message)
 
 @new_thread
