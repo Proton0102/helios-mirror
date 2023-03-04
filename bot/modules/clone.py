@@ -16,13 +16,7 @@ from bot.helper.ext_utils.bot_utils import is_gdrive_link, new_thread, is_Sharer
 
 
 def _clone(message, bot):
-    if not download_dict['GDRIVE_ID']:
-        sendMessage('GDRIVE_ID not Provided!', bot, message)
-        return
-    args = message.text.split()
-    reply_to = message.reply_to_message
-    link = ''
-    multi = 0
+     buttons = ButtonMaker()
     if len(args) > 1:
         link = args[1].strip()
         if link.strip().isdigit():
@@ -116,7 +110,5 @@ def _clone(message, bot):
 def cloneNode(update, context):
     _clone(update.message, context.bot)
 
-clone_handler = CommandHandler(BotCommands.CloneCommand, cloneNode,
-                               filters=CustomFilters.authorized_chat | CustomFilters.authorized_user)
-
+clone_handler = CommandHandler(BotCommands.CloneCommand, cloneNode, filters=CustomFilters.authorized_chat | CustomFilters.authorized_user, run_async=True)
 dispatcher.add_handler(clone_handler)
