@@ -11,7 +11,7 @@ from bot.helper.telegram_helper.message_utils import sendMessage, deleteMessage,
 from bot.helper.telegram_helper.filters import CustomFilters
 from bot.helper.telegram_helper.bot_commands import BotCommands
 from bot.helper.mirror_utils.status_utils.clone_status import CloneStatus
-rom bot import bot, dispatcher, LOGGER, STOP_DUPLICATE, download_dict, download_dict_lock, Interval, MIRROR_LOGS, BOT_PM, AUTO_DELETE_UPLOAD_MESSAGE_DURATION, CLONE_LIMIT, FORCE_BOT_PM
+from bot import bot, dispatcher, LOGGER, STOP_DUPLICATE, download_dict, download_dict_lock, Interval, MIRROR_LOGS, BOT_PM, AUTO_DELETE_UPLOAD_MESSAGE_DURATION, CLONE_LIMIT, FORCE_BOT_PM
 from bot.helper.ext_utils.bot_utils import is_gdrive_link, new_thread, is_Sharerlink
 
 
