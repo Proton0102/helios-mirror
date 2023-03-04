@@ -69,9 +69,9 @@ def _mirror_leech(bot, message, isZip=False, extract=False, isQbit=False, isLeec
                 seed = True
                 index += 1
                 dargs = x.split(':')
-                ratio = dargs[1] if dargs[1] else None
+                ratio = dargs[1] or None
                 if len(dargs) == 3:
-                    seed_time = dargs[2] if dargs[2] else None
+                    seed_time = dargs[2] or None
         message_args = mesg[0].split(maxsplit=index)
         if len(message_args) > index:
             link = message_args[index].strip()
@@ -86,9 +86,7 @@ def _mirror_leech(bot, message, isZip=False, extract=False, isQbit=False, isLeec
         link = ''
 
     if len(name_args) > 1:
-        name = name_args[1]
-        name = name.split(' pswd:')[0]
-        name = name.strip()
+        name = '' if 'pswd:' in name[0] else name[1].split('pswd:')[0].strip()
     else:
         name = ''
 
@@ -199,7 +197,7 @@ def _mirror_leech(bot, message, isZip=False, extract=False, isQbit=False, isLeec
                     link = error.split("'")[1]
                 else:
                     LOGGER.error(str(e))
-                    return sendMessage(tag + " " + error, bot, message)
+                    return sendMessage(f"{tag} {error}", bot, message)
         else:
             msg = "Qb commands for torrents only. if you are trying to dowload torrent then report."
             return sendMessage(msg, bot, message)
@@ -222,10 +220,7 @@ def _mirror_leech(bot, message, isZip=False, extract=False, isQbit=False, isLeec
     else:
         if len(mesg) > 1:
             ussr = mesg[1]
-            if len(mesg) > 2:
-                pssw = mesg[2]
-            else:
-                pssw = ''
+            pssw = mesg[2] if len(mesg) > 2 else ''
             auth = f"{ussr}:{pssw}"
             auth = "Basic " + b64encode(auth.encode()).decode('ascii')
         else:
@@ -233,13 +228,19 @@ def _mirror_leech(bot, message, isZip=False, extract=False, isQbit=False, isLeec
         Thread(target=add_aria2c_download, args=(link, f'{DOWNLOAD_DIR}{listener.uid}', listener, name,
                                                  auth, select, ratio, seed_time)).start()
 
-    if multi > 1:
+    if multi <= 1:
+            return
         sleep(4)
-        nextmsg = type('nextmsg', (object, ), {'chat_id': message.chat_id, 'message_id': message.reply_to_message.message_id + 1})
-        nextmsg = sendMessage(message.text.replace(str(multi), str(multi - 1), 1), bot, nextmsg)
+        nextmsg = type('nextmsg', (object, ), {'chat_id': message.chat_id,
+                                               'message_id': message.reply_to_message.message_id + 1})
+        msg = message.text.split(maxsplit=mi+1)
+        msg[mi] = f"{multi - 1}"
+        nextmsg = sendMessage(" ".join(msg), bot, nextmsg)
+        if len(folder_name) > 0:
+            sameDir.add(nextmsg.message_id)
         nextmsg.from_user.id = message.from_user.id
         sleep(4)
-        Thread(target=_mirror_leech, args=(bot, nextmsg, isZip, extract, isQbit, isLeech)).start()
+        Thread(target=_mirror_leech, args=(bot, nextmsg, isZip, extract, isQbit, isLeech, sameDir)).start()
 
 
 def mirror(update, context):
