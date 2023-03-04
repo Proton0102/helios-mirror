@@ -1,16 +1,18 @@
 from base64 import b64encode
 from re import match as re_match, split as re_split
-from time import sleep
+from os import path as ospath
+from time import sleep, time
 from threading import Thread
 from telegram.ext import CommandHandler
+from requests import get as rget
 
-from bot import dispatcher, DOWNLOAD_DIR, LOGGER, MEGA_KEY, BOT_PM, LEECH_LOG, MAX_SPLIT_SIZE
+from bot import dispatcher, DOWNLOAD_DIR, LOGGER, BOT_PM, LEECH_LOG, MAX_SPLIT_SIZE
 from bot.helper.ext_utils.bot_utils import is_url, is_magnet, is_mega_link, is_gdrive_link, get_content_type
 from bot.helper.ext_utils.exceptions import DirectDownloadLinkException
 from bot.helper.mirror_utils.download_utils.aria2_download import add_aria2c_download
 from bot.helper.mirror_utils.download_utils.gd_downloader import add_gd_download
 from bot.helper.mirror_utils.download_utils.qbit_downloader import QbDownloader
-from bot.helper.mirror_utils.download_utils.mega_downloader import MegaDownloader
+from bot.helper.mirror_utils.download_utils.mega_downloader import add_mega_download
 from bot.helper.mirror_utils.download_utils.direct_link_generator import direct_link_generator
 from bot.helper.mirror_utils.download_utils.telegram_downloader import TelegramDownloadHelper
 from bot.helper.telegram_helper.bot_commands import BotCommands
@@ -67,9 +69,9 @@ def _mirror_leech(bot, message, isZip=False, extract=False, isQbit=False, isLeec
                 seed = True
                 index += 1
                 dargs = x.split(':')
-                ratio = dargs[1] if dargs[1] else None
+                ratio = dargs[1] or None
                 if len(dargs) == 3:
-                    seed_time = dargs[2] if dargs[2] else None
+                    seed_time = dargs[2] or None
         message_args = mesg[0].split(maxsplit=index)
         if len(message_args) > index:
             link = message_args[index].strip()
@@ -84,9 +86,7 @@ def _mirror_leech(bot, message, isZip=False, extract=False, isQbit=False, isLeec
         link = ''
 
     if len(name_args) > 1:
-        name = name_args[1]
-        name = name.split(' pswd:')[0]
-        name = name.strip()
+        name = '' if 'pswd:' in name[0] else name[1].split('pswd:')[0].strip()
     else:
         name = ''
 
@@ -176,6 +176,31 @@ def _mirror_leech(bot, message, isZip=False, extract=False, isQbit=False, isLeec
                 LOGGER.info(str(e))
                 if str(e).startswith('ERROR:'):
                     return sendMessage(str(e), bot, message)
+    elif isQbit and not is_magnet(link):
+        if link.endswith('.torrent') or "https://api.telegram.org/file/" in link:
+            content_type = None
+        else:
+            content_type = get_content_type(link)
+        if content_type is None or re_match(r'application/x-bittorrent|application/octet-stream', content_type):
+            try:
+                resp = rget(link, timeout=10, headers = {'user-agent': 'Wget/1.12'})
+                if resp.status_code == 200:
+                    file_name = str(time()).replace(".", "") + ".torrent"
+                    with open(file_name, "wb") as t:
+                        t.write(resp.content)
+                    link = str(file_name)
+                else:
+                    return sendMessage(f"{tag} ERROR: link got HTTP response: {resp.status_code}", bot, message)
+            except Exception as e:
+                error = str(e).replace('<', ' ').replace('>', ' ')
+                if error.startswith('No connection adapters were found for'):
+                    link = error.split("'")[1]
+                else:
+                    LOGGER.error(str(e))
+                    return sendMessage(f"{tag} {error}", bot, message)
+        else:
+            msg = "Qb commands for torrents only. if you are trying to dowload torrent then report."
+            return sendMessage(msg, bot, message)
 
     listener = MirrorLeechListener(bot, message, isZip, extract, isQbit, isLeech, pswd, tag, select, seed)
 
@@ -188,20 +213,14 @@ def _mirror_leech(bot, message, isZip=False, extract=False, isQbit=False, isLeec
         else:
             Thread(target=add_gd_download, args=(link, f'{DOWNLOAD_DIR}{listener.uid}', listener, name)).start()
     elif is_mega_link(link):
-        if MEGA_KEY is not None:
-            Thread(target=MegaDownloader(listener).add_download, args=(link, f'{DOWNLOAD_DIR}{listener.uid}/')).start()
-        else:
-            sendMessage('MEGA_API_KEY not Provided!', bot, message)
-    elif isQbit:
+        Thread(target=add_mega_download, args=(link, f'{DOWNLOAD_DIR}{listener.uid}/', listener, name)).start()
+    elif isQbit and (is_magnet(link) or ospath.exists(link)):
         Thread(target=QbDownloader(listener).add_qb_torrent, args=(link, f'{DOWNLOAD_DIR}{listener.uid}',
                                                                    select, ratio, seed_time)).start()
     else:
         if len(mesg) > 1:
             ussr = mesg[1]
-            if len(mesg) > 2:
-                pssw = mesg[2]
-            else:
-                pssw = ''
+            pssw = mesg[2] if len(mesg) > 2 else ''
             auth = f"{ussr}:{pssw}"
             auth = "Basic " + b64encode(auth.encode()).decode('ascii')
         else:
@@ -209,13 +228,19 @@ def _mirror_leech(bot, message, isZip=False, extract=False, isQbit=False, isLeec
         Thread(target=add_aria2c_download, args=(link, f'{DOWNLOAD_DIR}{listener.uid}', listener, name,
                                                  auth, select, ratio, seed_time)).start()
 
-    if multi > 1:
+    if multi <= 1:
+            return
         sleep(4)
-        nextmsg = type('nextmsg', (object, ), {'chat_id': message.chat_id, 'message_id': message.reply_to_message.message_id + 1})
-        nextmsg = sendMessage(message.text.replace(str(multi), str(multi - 1), 1), bot, nextmsg)
+        nextmsg = type('nextmsg', (object, ), {'chat_id': message.chat_id,
+                                               'message_id': message.reply_to_message.message_id + 1})
+        msg = message.text.split(maxsplit=mi+1)
+        msg[mi] = f"{multi - 1}"
+        nextmsg = sendMessage(" ".join(msg), bot, nextmsg)
+        if len(folder_name) > 0:
+            sameDir.add(nextmsg.message_id)
         nextmsg.from_user.id = message.from_user.id
         sleep(4)
-        Thread(target=_mirror_leech, args=(bot, nextmsg, isZip, extract, isQbit, isLeech)).start()
+        Thread(target=_mirror_leech, args=(bot, nextmsg, isZip, extract, isQbit, isLeech, sameDir)).start()
 
 
 def mirror(update, context):
