@@ -37,7 +37,7 @@ if reply_to:
         else:
             tag = reply_to.from_user.mention_html(reply_to.from_user.first_name)
 
-    def __run_multi():
+def __run_multi():
         if multi <= 1:
             return
         sleep(4)
@@ -50,7 +50,7 @@ if reply_to:
         sleep(4)
         Thread(target=_clone, args=(nextmsg, bot)).start()
 
-    if is_Sharerlink(link):
+if is_Sharerlink(link):
         try:
             link = direct_link_generator(link)
             LOGGER.info(f"Generated link: {link}")
