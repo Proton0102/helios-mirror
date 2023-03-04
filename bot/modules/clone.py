@@ -18,9 +18,9 @@ from bot.helper.ext_utils.bot_utils import is_gdrive_link, new_thread, is_Sharer
 def _clone(message, bot):
      buttons = ButtonMaker()
 args = message.text.split()
-    reply_to = message.reply_to_message
-    link = ''
-    multi=0
+reply_to = message.reply_to_message
+link = ''
+multi=0
     if len(args) > 1:
         link = args[1].strip()
         if link.strip().isdigit():
