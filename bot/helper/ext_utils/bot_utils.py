@@ -248,6 +248,9 @@ def is_url(url: str):
 def is_gdrive_link(url: str):
     return "drive.google.com" in url
 
+def is_Sharerlink(url: str):
+    return bool(re_match(r'https?:\/\/.+\.gdtot\.\S+|https?:\/\/(filepress|filebee|appdrive|gdflix)\.\S+', url))
+
 def is_mega_link(url: str):
     return "mega.nz" in url or "mega.co.nz" in url
 
