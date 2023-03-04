@@ -105,8 +105,7 @@ def _clone(message, bot):
         nextmsg.from_user.id = message.from_user.id
         sleep(4)
         Thread(target=_clone, args=(nextmsg, bot)).start()
-
-     if is_Sharerlink(link):
+if is_Sharerlink(link):
         try:
             link = direct_link_generator(link)
             LOGGER.info(f"Generated link: {link}")
