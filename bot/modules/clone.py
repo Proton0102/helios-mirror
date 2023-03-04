@@ -60,7 +60,7 @@ if is_Sharerlink(link):
                 sendMessage(str(e), bot, message)
                 __run_multi()
                 return
-    if is_gdrive_link(link):
+if is_gdrive_link(link):
         gd = GoogleDriveHelper()
         res, size, name, files = gd.helper(link)
         if res != "":
@@ -76,7 +76,7 @@ if is_Sharerlink(link):
                 __run_multi()
                 return
         __run_multi()
-        if files <= 20:
+if files <= 20:
             msg = sendMessage(f"Cloning: <code>{link}</code>", bot, message)
             result, button = gd.clone(link)
             deleteMessage(bot, msg)
