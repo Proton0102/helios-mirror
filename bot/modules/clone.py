@@ -16,7 +16,7 @@ from bot.helper.ext_utils.bot_utils import is_gdrive_link, new_thread, is_Sharer
 
 
 def _clone(message, bot):
-    if not config_dict['GDRIVE_ID']:
+    if not download_dict['GDRIVE_ID']:
         sendMessage('GDRIVE_ID not Provided!', bot, message)
         return
     args = message.text.split()
@@ -70,7 +70,7 @@ def _clone(message, bot):
             sendMessage(res, bot, message)
             __run_multi()
             return
-        if config_dict['STOP_DUPLICATE']:
+        if download_dict['STOP_DUPLICATE']:
             LOGGER.info('Checking File/Folder if already in Drive...')
             smsg, button = gd.drive_list(name, True, True)
             if smsg:
