@@ -14,7 +14,6 @@ from bot.helper.mirror_utils.status_utils.clone_status import CloneStatus
 from bot import bot, dispatcher, LOGGER, STOP_DUPLICATE, download_dict, download_dict_lock, Interval, MIRROR_LOGS, BOT_PM, AUTO_DELETE_UPLOAD_MESSAGE_DURATION, CLONE_LIMIT, FORCE_BOT_PM
 from bot.helper.ext_utils.bot_utils import is_gdrive_link, new_thread, is_Sharerlink
 
-
 def _clone(message, bot):
      buttons = ButtonMaker()
 args = message.text.split()
