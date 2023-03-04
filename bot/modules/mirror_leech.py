@@ -228,19 +228,13 @@ def _mirror_leech(bot, message, isZip=False, extract=False, isQbit=False, isLeec
         Thread(target=add_aria2c_download, args=(link, f'{DOWNLOAD_DIR}{listener.uid}', listener, name,
                                                  auth, select, ratio, seed_time)).start()
 
-    if multi <= 1:
-            return
+    if multi > 1:
         sleep(4)
-        nextmsg = type('nextmsg', (object, ), {'chat_id': message.chat_id,
-                                               'message_id': message.reply_to_message.message_id + 1})
-        msg = message.text.split(maxsplit=mi+1)
-        msg[mi] = f"{multi - 1}"
-        nextmsg = sendMessage(" ".join(msg), bot, nextmsg)
-        if len(folder_name) > 0:
-            sameDir.add(nextmsg.message_id)
+        nextmsg = type('nextmsg', (object, ), {'chat_id': message.chat_id, 'message_id': message.reply_to_message.message_id + 1})
+        nextmsg = sendMessage(message.text.replace(str(multi), str(multi - 1), 1), bot, nextmsg)
         nextmsg.from_user.id = message.from_user.id
         sleep(4)
-        Thread(target=_mirror_leech, args=(bot, nextmsg, isZip, extract, isQbit, isLeech, sameDir)).start()
+        Thread(target=_mirror_leech, args=(bot, nextmsg, isZip, extract, isQbit, isLeech)).start()
 
 
 def mirror(update, context):
