@@ -10,8 +10,8 @@ from bot.helper.telegram_helper.filters import CustomFilters
 from bot.helper.telegram_helper.bot_commands import BotCommands
 from bot.helper.mirror_utils.status_utils.clone_status import CloneStatus
 from bot import bot, dispatcher, LOGGER, STOP_DUPLICATE, download_dict, download_dict_lock, Interval, MIRROR_LOGS, BOT_PM, AUTO_DELETE_UPLOAD_MESSAGE_DURATION, CLONE_LIMIT, FORCE_BOT_PM
-from bot.helper.ext_utils.bot_utils import is_gdrive_link, new_thread, is_appdrive_link, is_gdtot_link, get_readable_file_size
-from bot.helper.mirror_utils.download_utils.direct_link_generator import appdrive, gdtot
+from bot.helper.ext_utils.bot_utils import is_gdrive_link, new_thread, is_appdrive_link, is_gdtot_link, is_Sharerlink, get_readable_file_size
+from bot.helper.mirror_utils.download_utils.direct_link_generator import appdrive, gdtot, Sharerlink
 from bot.helper.ext_utils.exceptions import DirectDownloadLinkException
 from bot.helper.telegram_helper.button_build import ButtonMaker
 def _clone(message, bot):
@@ -99,6 +99,16 @@ def _clone(message, bot):
             nextmsg.from_user.id = message.from_user.id
             sleep(4)
             Thread(target=_clone, args=(nextmsg, bot)).start()
+if is_Sharerlink(link):
+        try:
+            link = direct_link_generator(link)
+            LOGGER.info(f"Generated link: {link}")
+        except DirectDownloadLinkException as e:
+            LOGGER.info(str(e))
+            if str(e).startswith('ERROR:'):
+                sendMessage(str(e), bot, message)
+                __run_multi()
+                return
         if files <= 20:
             msg = sendMessage(f"Cloning: <code>{link}</code>", bot, message)
             result, button = gd.clone(link)
