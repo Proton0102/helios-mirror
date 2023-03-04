@@ -20,6 +20,7 @@ from base64 import standard_b64encode, b64decode
 from time import sleep
 from lxml import etree
 from bot import LOGGER, UPTOBOX_TOKEN, APPDRIVE_EMAIL, APPDRIVE_PASS, CRYPT
+from bot.helper.ext_utils.bot_utils import is_Sharerlink
 from bot.helper.ext_utils.exceptions import DirectDownloadLinkException
 from bot.helper.ext_utils.bot_utils import is_appdrive_link, is_gdtot_link
 fmed_list = ['fembed.net', 'fembed.com', 'femax20.com', 'fcdn.stream', 'feurl.com', 'layarkacaxxi.icu',
